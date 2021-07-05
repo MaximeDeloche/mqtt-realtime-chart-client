@@ -3,13 +3,12 @@
         <div class="container-fluid">
             <div class="row text-center">
                 
-                <div class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3 col-lg-4 col-lg-offset-4">
-                    <h1>Status: {{connStatus}}</h1>
+                <div class="col-xs-12 col-sm-8 col-sm-offset-2">
                     
                     <!-- Panel div start -->
                     <div class="panel panel-primary">
                         <div class="panel-heading">
-                            <h3 class="panel-title">Title</h3>
+                            <h3>Stock market prediction</h3>
                         </div>
                         <div class="panel-body">
                             <!-- Chart container -->
@@ -20,7 +19,20 @@
                             <!-- End of chart container -->
                         </div>
                         <div class="panel-footer">
-                            <h3 class="panel-title">Footer</h3>
+            <div class="row">
+                <div class="col-sm-6 text-left">
+                <h4><b>
+                    <span style="color: #254661">Real prices</span> &
+                    <span style="color: #00a65e">Prediction</span>
+                </b></h4>
+                </div>
+                <div class="col-sm-6 text-right">
+                <h4>
+                    {{connStatus}} 
+                    <span class="dot" v-bind:class="{ green: connStatus == 'Connected'}"></span>
+                </h4>
+                </div>
+                        </div>
                         </div>
                     </div>
                     <!-- Panel div end -->
@@ -44,8 +56,8 @@
         name: 'home',
         data() {
             return {
-				currentIndex: 0,
-				maxLength: 100,
+        currentIndex: 0,
+        maxLength: 100,
                 updateInterval: 200,
                 connStatus: "Disconnected",
             }
@@ -59,24 +71,24 @@
             initChart() {
                 magnitudeChart = new Rickshaw.Graph({
                     element: document.querySelector("#demo_chart"),
-                    width: "1000", /* 500 */
-                    height: "500", /* 180 */
+                    width: "500",
+                    height: "180",
                     renderer: "line",
                     min: 50,
                     max: 100,
                     series: [
-						{
-							name: "reals",
-							data: [],
-							color: "#254661"
-						},
-						{
-							name: "predictions",
-							data: [],
-							color: "#00a65e"
-						}
-					]
-					});
+                        {
+                            name: "reals",
+                            data: [],
+                            color: "#254661"
+                        },
+                        {
+                            name: "predictions",
+                            data: [],
+                            color: "#00a65e"
+                        }
+                    ]
+                    });
 
                 var y_axis = new Rickshaw.Graph.Axis.Y({
                     graph: magnitudeChart,
@@ -94,9 +106,9 @@
                     this.resizeChart(magnitudeChart)
                 });
 
-				// first series contains real prices, the second one the predicted next steps
-				this.realPrices = magnitudeChart.series[0];
-				this.predPrices = magnitudeChart.series[1];
+                // first series contains real prices, the second one the predicted next steps
+                this.realPrices = magnitudeChart.series[0];
+                this.predPrices = magnitudeChart.series[1];
 
             },
 
@@ -111,25 +123,25 @@
 
             /* Insert received datapoints into the chart */
             insertDatapoints(message, chart) {
-				// message contains:
-				// {price: new real price from the last second,
-				//  predictions: [list of predicted next prices]}
+                // message contains:
+                // {price: new real price from the last second,
+                //  predictions: [list of predicted next prices]}
 
-				// Step 1: update real prices
-				// add new real price (with current index) to the list
-				this.realPrices.data.push({x: this.currentIndex, y: message.price});
-				// pop oldest element(s) if list reached max length
-				while(this.realPrices.data.length > this.maxLength) {
-					this.realPrices.data.shift();
-				}
-				this.currentIndex ++; // increment current index for the next real price
+                // Step 1: update real prices
+                // add new real price (with current index) to the list
+                this.realPrices.data.push({x: this.currentIndex, y: message.price});
+                // pop oldest element(s) if list reached max length
+                while(this.realPrices.data.length > this.maxLength) {
+                    this.realPrices.data.shift();
+                }
+                this.currentIndex ++; // increment current index for the next real price
 
-				// Step 2: replace predicted prices
-				var predIndex = this.currentIndex;
-				// map predictions to indexes that follow the current index ('future' indexes)
-				this.predPrices.data = message.predictions.map(elt => ({"x": predIndex++, "y": elt}));
-				// prepend the last real price for the junction of the 2 plots
-				this.predPrices.data.unshift(this.realPrices.data.slice(-1)[0]);
+                // Step 2: replace predicted prices
+                var predIndex = this.currentIndex;
+                // map predictions to indexes that follow the current index ('future' indexes)
+                this.predPrices.data = message.predictions.map(elt => ({"x": predIndex++, "y": elt}));
+                // prepend the last real price for the junction of the 2 plots
+                this.predPrices.data.unshift(this.realPrices.data.slice(-1)[0]);
 
                 chart.render();
             },
@@ -146,7 +158,7 @@
 
                 /* Update chart when price is received */
                 socket.on('priceData', (message) => {
-					this.insertDatapoints(message, magnitudeChart);
+                    this.insertDatapoints(message, magnitudeChart);
                 });
             }
         }
@@ -185,6 +197,16 @@
     .glyphicon {
         color: #8E44AD;
         font-weight: bold;
+    }
+    .dot {
+      height: 13px;
+      width: 13px;
+      background-color: #b51f1f;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .green {
+      background-color: #099109;
     }
 
 </style>
